@@ -97,9 +97,4 @@ class Hangman extends Component {
     }
 }
 
-// Hangman.defaultProps = {
-//     maxWrong: 6,
-//     images: [img0, img1, img2, img3, img4, img5]
-// }
-
 export default Hangman;
