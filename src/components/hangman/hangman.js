@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { useState } from "react";
 import './hangman.css'
 import { randomWord } from "./words.js";
 
@@ -10,91 +10,65 @@ import img3 from "./images/3.PNG"
 import img4 from "./images/4.PNG"
 import img5 from "./images/5.PNG"
 
-class Hangman extends Component {
-    static defaultProps = {
-        maxWrong: 6,
-        images: [def, img0, img1, img2, img3, img4, img5],
+const Hangman = () => {
+    const [mistake, setMistake] = useState(0);
+    const [guessed, setGuessed] = useState(new Set([]));
+    const [answer, setAnswer] = useState(randomWord());
+
+
+    const handleGuess = (letter) => {
+        setGuessed((prevGuessed) => new Set(prevGuessed.add(letter)));
+        setMistake((prevMistake) => prevMistake + (answer.includes(letter) ? 0 : 1));
     }
 
-    constructor(props) {
-        super(props);
-        this.state = {
-            mistake: 0,
-            guessed: new Set([]),
-            answer: randomWord(),
-        }
+    const guessedWord = () => {
+        return answer.split("").map(letter => (guessed.has(letter) ? letter : " _ "))
     }
 
-    handleGuess = e => {
-        let letter = e.target.value;
-        this.setState(st => ({
-            guessed: st.guessed.add(letter),
-            mistake: st.mistake + (st.answer.includes(letter) ? 0 : 1)
-        }));
-    }
-
-    guessedWord() {
-        return this.state.answer.split("").map(letter => (this.state.guessed.has(letter) ? letter : " _ "))
-    }
-
-    generateButtons() {
+    const generateButtons = () => {
         return "abcdefghijklmnopqrstuvwxyz".split("").map(letter => (
             <button
                 className="letterBtn"
                 key={letter}
                 value={letter}
-                onClick={this.handleGuess}
-                disabled={this.state.guessed.has(letter)}
+                onClick={() => handleGuess(letter)}
+                disabled={guessed.has(letter)}
             >
                 {letter}
             </button>
         ))
     }
 
-    resetButton = () => {
-        this.setState({
-            mistake: 6,
-            guessed: new Set([]),
-            answer: randomWord()
-        });
-    }
+    const resetButton = () => {
+        setMistake(0);
+        setGuessed(new Set([]));
+        setAnswer(randomWord());
+    };
 
 
-    render() {
-        const gameOver = this.state.mistake >= this.props.maxWrong;
-        const isWinner = this.guessedWord().join('') === this.state.answer;
-        let gameStat = this.generateButtons();
-        if (isWinner) {
-            gameStat = 'You Win!'
-        }
+    const gameOver = mistake >= 6;
+    const isWinner = guessedWord().join('') === answer;
+    let gameStat = isWinner ? 'You Win!' : (gameOver ? 'You Lost' : generateButtons());
 
-        if (gameOver) {
-            gameStat = 'You Lost '
-        }
-
-        return (
-            <div className="Hangman container">
-                <h1 className="hangmanText">Hangman Game</h1>
-                <button className="resetBtn" onClick={this.resetButton}>Reset</button>
-                {/* кол-во не правельных ответов в  Hangman */}
-                <div className="worddStr">Wrong Answers: {this.state.mistake} of {this.props.maxWrong}</div>
-                {/* изображения Hangman */}
-                <div>
-                    <img className="hangmanImg" src={this.props.images[this.state.mistake]} alt="image" />
-                </div>
-                {/* Guess the word*/}
-                <div>
-                    <p className="correctAns">
-                        {!gameOver ? this.guessedWord() : this.state.answer}
-                    </p>
-                    <p>{gameStat}</p>
-
-                </div>
-
-
+    return (
+        <div className="Hangman container">
+            <h1 className="hangmanText">Hangman Game</h1>
+            <button className="resetBtn" onClick={resetButton}>Reset</button>
+            {/* кол-во не правельных ответов в  Hangman */}
+            <div className="worddStr">Wrong Answers: {mistake} of 6</div>
+            {/* изображения Hangman */}
+            <div>
+                <img className="hangmanImg" src={[def, img0, img1, img2, img3, img4, img5][mistake]} alt="image" />
             </div>
-        )
-    }
+            {/* Guess the word*/}
+            <div>
+                <p className="correctAns">
+                    {!gameOver ? guessedWord() : answer}
+                </p>
+                <p>{gameStat}</p>
+            </div>
+        </div>
+    )
 }
 
 export default Hangman;
